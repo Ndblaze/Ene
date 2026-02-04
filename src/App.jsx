@@ -1,8 +1,19 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import './App.css'
 
-// Import your song
-import song from './assets/Ed Sheeran - Perfect.mp3'
+// Import all songs
+import song1 from './assets/Ed Sheeran - Perfect.mp3'
+import song2 from './assets/Burna Boy - For My Hand ft. Ed Sheeran.mp3'
+import song3 from './assets/Ruth B. - Dandelions (Lyrics).mp3'
+import song4 from './assets/Made For Me by Muni Long.mp3'
+
+// Songs list with display names
+const songsList = [
+  { src: song1, name: 'Ed Sheeran - Perfect' },
+  { src: song2, name: 'Burna Boy - For My Hand' },
+  { src: song3, name: 'Ruth B. - Dandelions' },
+  { src: song4, name: 'Muni Long - Made For Me' },
+]
 
 // Import all your photos
 import photo1 from './assets/photos/73662871872__EE9BEDF6-545B-4BFE-BE0A-D7C194E129B2.jpeg'
@@ -119,12 +130,38 @@ const shuffleArray = (array) => {
 const media = shuffleArray(mediaList)
 
 function App() {
+  const [isLoading, setIsLoading] = useState(true)
+  const [loadProgress, setLoadProgress] = useState(0)
   const [started, setStarted] = useState(false)
   const [answered, setAnswered] = useState(null)
   const [noButtonPosition, setNoButtonPosition] = useState({ x: 0, y: 0 })
   const [noButtonScale, setNoButtonScale] = useState(1)
+  const [currentSongIndex, setCurrentSongIndex] = useState(0)
   const audioRef = useRef(null)
   const noButtonRef = useRef(null)
+  const loadedCountRef = useRef(0)
+
+  // Count only images for loading (videos load progressively)
+  const totalImages = mediaList.filter(m => m.type === 'image').length
+
+  const handleMediaLoad = () => {
+    loadedCountRef.current += 1
+    const progress = Math.round((loadedCountRef.current / totalImages) * 100)
+    setLoadProgress(progress)
+    
+    if (loadedCountRef.current >= totalImages) {
+      // Small delay for smooth transition
+      setTimeout(() => setIsLoading(false), 500)
+    }
+  }
+
+  // Fallback: hide loading after max 8 seconds even if not all loaded
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      setIsLoading(false)
+    }, 8000)
+    return () => clearTimeout(timeout)
+  }, [])
 
   const handleStart = () => {
     setStarted(true)
@@ -137,6 +174,19 @@ function App() {
   const handleYes = () => {
     setAnswered('yes')
   }
+
+  const handleSongChange = (e) => {
+    const newIndex = parseInt(e.target.value)
+    setCurrentSongIndex(newIndex)
+  }
+
+  // Play new song when it changes
+  useEffect(() => {
+    if (started && audioRef.current) {
+      audioRef.current.load()
+      audioRef.current.play().catch(e => console.log('Audio play failed:', e))
+    }
+  }, [currentSongIndex, started])
 
   const handleNoHover = (e) => {
     // Get viewport dimensions
@@ -199,12 +249,29 @@ function App() {
   return (
     <div className="app">
       {/* Background Music */}
-      <audio ref={audioRef} loop>
-        <source src={song} type="audio/mpeg" />
-      </audio>
+      <audio ref={audioRef} loop src={songsList[currentSongIndex].src} />
+
+      {/* Loading Screen */}
+      {isLoading && (
+        <div className="loading-screen">
+          <div className="loading-hearts">
+            <span className="loading-heart heart-1">💕</span>
+            <span className="loading-heart heart-2">💖</span>
+            <span className="loading-heart heart-3">💕</span>
+          </div>
+          <h2 className="loading-text">Preparing something special...</h2>
+          <div className="loading-bar-container">
+            <div 
+              className="loading-bar" 
+              style={{ width: `${loadProgress}%` }}
+            ></div>
+          </div>
+          <p className="loading-percent">{loadProgress}%</p>
+        </div>
+      )}
 
       {/* Photo/Video Collage Background */}
-      <div className="photo-collage">
+      <div className={`photo-collage ${isLoading ? 'hidden' : ''}`}>
         {media.map((item, index) => (
           <div
             key={index}
@@ -219,17 +286,22 @@ function App() {
                 playsInline
               />
             ) : (
-              <img src={item.src} alt="" loading="lazy" />
+              <img 
+                src={item.src} 
+                alt="" 
+                onLoad={handleMediaLoad}
+                onError={handleMediaLoad}
+              />
             )}
           </div>
         ))}
       </div>
 
       {/* Dark Overlay */}
-      <div className="dark-overlay"></div>
+      <div className={`dark-overlay ${isLoading ? 'hidden' : ''}`}></div>
 
       {/* Floating Hearts */}
-      <div className="hearts-bg">
+      <div className={`hearts-bg ${isLoading ? 'hidden' : ''}`}>
         {[...Array(12)].map((_, i) => (
           <div key={i} className="floating-heart" style={{
             left: `${Math.random() * 100}%`,
@@ -240,7 +312,7 @@ function App() {
       </div>
 
       {/* Intro Screen */}
-      {!started ? (
+      {!isLoading && !started ? (
         <div className="intro-screen">
           <div className="intro-hearts">💕</div>
           <h1 className="intro-title">I Made This For You</h1>
@@ -249,10 +321,26 @@ function App() {
             Open 💌
           </button>
         </div>
-      ) : (
+      ) : !isLoading ? (
         <div className={`content ${started ? 'content-visible' : ''}`}>
           {answered === null ? (
             <>
+              {/* Song Selector */}
+              <div className="song-selector">
+                <span className="song-icon">🎵</span>
+                <select 
+                  value={currentSongIndex} 
+                  onChange={handleSongChange}
+                  className="song-dropdown"
+                >
+                  {songsList.map((song, index) => (
+                    <option key={index} value={index}>
+                      {song.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
               <div className="main-heart">💖</div>
               <h1 className="title">Will You Be My Valentine?</h1>
               <p className="subtitle">You make my heart skip a beat ✨</p>
@@ -278,6 +366,22 @@ function App() {
             </>
           ) : (
             <div className="success">
+              {/* Song Selector */}
+              <div className="song-selector">
+                <span className="song-icon">🎵</span>
+                <select 
+                  value={currentSongIndex} 
+                  onChange={handleSongChange}
+                  className="song-dropdown"
+                >
+                  {songsList.map((song, index) => (
+                    <option key={index} value={index}>
+                      {song.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
               <div className="success-hearts">💕💖💕</div>
               <h1 className="success-title">Yay! 🎉</h1>
               <p className="success-text">You've made me the happiest person!</p>
@@ -292,7 +396,7 @@ function App() {
             </div>
           )}
         </div>
-      )}
+      ) : null}
     </div>
   )
 }
