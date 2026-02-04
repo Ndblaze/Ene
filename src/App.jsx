@@ -315,7 +315,7 @@ function App() {
       {!isLoading && !started ? (
         <div className="intro-screen">
           <div className="intro-hearts">💕</div>
-          <h1 className="intro-title">I Made This For You</h1>
+          <h1 className="intro-title">I Made This For You Ene m!</h1>
           <p className="intro-subtitle">Click to open your surprise...</p>
           <button className="btn-start" onClick={handleStart}>
             Open 💌
@@ -343,7 +343,7 @@ function App() {
 
               <div className="main-heart">💖</div>
               <h1 className="title">Will You Be My Valentine?</h1>
-              <p className="subtitle">You make my heart skip a beat ✨</p>
+              <p className="subtitle">I have never loved you less from the first day we started, I fall for you more every single day ✨</p>
 
               <div className="buttons">
                 <button className="btn btn-yes" onClick={handleYes}>
@@ -383,8 +383,8 @@ function App() {
               </div>
 
               <div className="success-hearts">💕💖💕</div>
-              <h1 className="success-title">Yay! 🎉</h1>
-              <p className="success-text">You've made me the happiest person!</p>
+              <h1 className="success-title">Yay! Ene M!🎉</h1>
+              <p className="success-text">You've made me the happiest person again!</p>
               <p className="success-subtext">I can't wait to spend Valentine's Day with you 💝</p>
               <div className="love-animation">
                 {[...Array(10)].map((_, i) => (

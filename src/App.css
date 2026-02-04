@@ -808,9 +808,10 @@
 }
 
 .subtitle {
-  font-size: 1.1rem;
+  font-size: 0.95rem;
   color: rgba(255, 255, 255, 0.8);
   margin-bottom: 2rem;
+  line-height: 1.6;
 }
 
 /* Buttons */
